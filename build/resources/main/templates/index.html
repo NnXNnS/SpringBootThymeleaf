@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html">
+
+
+<div th:replace="fragments/header :: header"></div>
+<body>
+<section>
+    <div th:replace="fragments/header :: nav-header"></div>
+    <!--for demo wrap-->
+<!--    <h1>Item Table</h1>-->
+    <h1>Tabel Mahasiswa</h1>
+    <div class="row" style="padding-left:1%;padding-bottom:1%;">
+        Search :&nbsp;
+        <input type="text" id="searchItem">
+    </div>
+    <div class="tbl-header">
+        <table cellpadding="0" cellspacing="0" border="0">
+            <thead>
+            <tr>
+                <th>
+                    <table>
+                        <tr>
+                            <td class="addNewIcon" style="width: 15%;" data-toggle="modal" data-target="#newModal"><i
+                                    class="fa fa-plus-circle" style="font-size:28px;"></i></td>
+                            <td>Nama</td>
+                        </tr>
+                    </table>
+                </th>
+                <th>NIM</th>
+                <th>Jurusan</th>
+                <th>IPK</th>
+                <th>Created Date</th>
+                <th>Updated Date</th>
+                <th>Action
+                </th>
+            </tr>
+            </thead>
+        </table>
+        <!--        <table cellpadding="0" cellspacing="0" border="0">-->
+        <!--            <thead>-->
+        <!--            <tr>-->
+        <!--                <th>-->
+        <!--                    <table>-->
+        <!--                        <tr>-->
+        <!--                            <td class="addNewIcon" style="width: 15%;"  data-toggle="modal" data-target="#newModal"><i class="fa fa-plus-circle" style="font-size:28px;"></i></td>-->
+        <!--                            <td>Item Name</td>-->
+        <!--                        </tr>-->
+        <!--                    </table>-->
+        <!--                </th>-->
+        <!--                <th>Item Type</th>-->
+        <!--                <th>Description</th>-->
+        <!--                <th>Price</th>-->
+        <!--                <th>Stock</th>-->
+        <!--                <th>Created Date</th>-->
+        <!--                <th>Updated Date</th>-->
+        <!--                <th>Action-->
+        <!--                </th>-->
+        <!--            </tr>-->
+        <!--            </thead>-->
+        <!--        </table>-->
+    </div>
+    <div class="tbl-content">
+        <table cellpadding="0" cellspacing="0" border="0">
+            <tbody class="itemTbody">
+            <tr th:each="item : ${page.content}"
+                th:data-url="${item.id}"
+                onclick="showDetail(this.getAttribute('data-url'));">
+                <td style="padding-left:3%">[[${item.nama}]]</td>
+                <td>[[${item.nim}]]</td>
+                <td>[[${item.jurusan}]]</td>
+                <td>[[${item.ipk}]]</td>
+                <td>[[${#dates.format(item.createdDate, 'dd MMM yyyy HH:mm')}]]</td>
+                <td>[[${#dates.format(item.updatedDate, 'dd MMM yyyy HH:mm')}]]</td>
+                <td th:data-url="${item.id}" th:onclick="deleteItemPopup(this.getAttribute('data-url'));">
+                    <i class="fa fa-trash-o" style="font-size:36px"></i>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+    </div>
+    <div class="row" style="padding-left:1%;padding-bottom:1%;">
+
+        <div class="pagination-div">
+            <span>
+                Item&nbsp;
+            </span>
+            <span>
+                [[${page.number*page.size+1}]]
+            </span>
+            <span>
+                -
+            </span>
+            <span th:if="${page.number*page.size+page.size < page.totalElements}">
+                [[${page.number*page.size+page.size}]]
+            </span>
+            <span th:unless="${page.number*page.size+page.size < page.totalElements}">
+                [[${page.totalElements}]]
+            </span>
+        </div>
+    </div>
+    <div class="row" style="padding-left:1%;padding-bottom:1%;">
+
+        <div class="pagination-div">
+            <span th:if="${page.hasPrevious()}">
+                <a th:href="@{/mahasiswas(page=0,size=${page.size})}">First</a>
+            </span>
+            <span th:if="${page.hasPrevious()}">
+                <a th:href="@{/mahasiswas(page=${page.number-1},size=${page.size})}">Previous</a>
+            </span>
+            <th:block th:each="i: ${#numbers.sequence(0, page.totalPages - 1)}">
+                <span th:if="${page.number == i}" class="selected">[[${i}+1]]</span>
+                <span th:unless="${page.number == i}">
+                     <a th:href="@{/mahasiswas(page=${i},size=${page.size})}">[[${i}+1]]</a>
+                </span>
+            </th:block>
+            <span th:if="${page.hasNext()}">
+                <a th:href="@{/mahasiswas(page=${page.number+1},size=${page.size})}">Next</a>
+            </span>
+            <span th:if="${page.hasNext()}">
+                <a th:href="@{/mahasiswas(page=${page.totalPages-1},size=${page.size})}">Last</a>
+            </span>
+        </div>
+    </div>
+</section>
+
+<!-- Modal New-->
+<div class="modal fade" id="newModal" tabindex="-1" role="dialog" aria-labelledby="newModalTitle"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <form id="newItemForm" action="#" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="newModalTitle">New Item</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-hover">
+                        <tbody>
+                        <tr>
+                            <td class="table-modal">
+                                Nama
+                            </td>
+                            <td class="table-modal">
+                                <input type="text" id="itemNameNew">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                NIM
+                            </td>
+                            <td>
+                                <input type="text" id="itemPriceNew">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Jurusan
+                            </td>
+                            <td>
+                                <input type="text" id="itemTypeNew">
+                            </td>
+                        </tr>
+<!--                        <tr>-->
+<!--                            <td>-->
+<!--                                Description-->
+<!--                            </td>-->
+<!--                            <td>-->
+<!--                                <textarea class="modal-text-area" id="itemDescriptionNew"></textarea>-->
+<!--                            </td>-->
+<!--                        </tr>-->
+                        <tr>
+                            <td>
+                                IPK
+                            </td>
+                            <td>
+                                <input type="text" id="itemStockNew">
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Edit-->
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalTitle"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <form id="updateItemForm" action="#" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editModalTitle">Edit Item</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-hover">
+                        <tbody>
+                        <tr>
+                            <td class="table-modal">
+                                Nama
+                            </td>
+                            <td class="table-modal">
+                                <input type="text" id="itemName">
+                                <input type="hidden" id="itemId">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                NIM
+                            </td>
+                            <td>
+                                <input type="text" id="itemPrice">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Jurusan
+                            </td>
+                            <td>
+                                <input type="text" id="itemType">
+                            </td>
+                        </tr>
+<!--                        <tr>-->
+<!--                            <td>-->
+<!--                                Description-->
+<!--                            </td>-->
+<!--                            <td>-->
+<!--                                <textarea class="modal-text-area" id="itemDescription"></textarea>-->
+<!--                            </td>-->
+<!--                        </tr>-->
+                        <tr>
+                            <td>
+                                IPK
+                            </td>
+                            <td>
+                                <input type="text" id="itemStock">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Created Date
+                            </td>
+                            <td>
+                                <input type="text" id="itemCreatedDate" disabled>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Updated Date
+                            </td>
+                            <td>
+                                <input type="text" id="itemUpdatedDate" disabled>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Delete-->
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalTitle"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalTitle">Delete item</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="itemNameDelete"></p>
+                <input type="hidden" id="deletedId">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+                <button type="button" class="btn btn-danger" onclick="deleteItem()">Yes</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- follow me template -->
+<div class="made-with-love">
+    Made with
+    <i>♥</i> by
+    <a target="_blank" href="https://www.instagram.com/chriztian16">Ivan Christian</a>
+</div>
+<script src="/js/jquery-3.5.1.min.js"></script>
+<script src="/js/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+<script src="/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+<script src="/js/jquery.dataTables.min.js"></script>
+<!--<script type="text/javascript" th:src="@{/js/itemTable.js}"></script>-->
+<script type="text/javascript" th:src="@{/js/mahasiswaTable.js}"></script>
+</body>
+</html>
